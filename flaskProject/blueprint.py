@@ -24,6 +24,19 @@ def handle_error(error):
     return jsonify(response), 404
 
 
+@errors.app_errorhandler(sqlalchemy.exc.IntegrityError)
+def handle_error(error):
+    response = {
+        'error': {
+            'code': 400,
+            'type': 'BAD_REQUEST',
+            'message': 'Not enough data'
+        }
+    }
+
+    return jsonify(response), 400
+
+
 @errors.app_errorhandler(marshmallow.exceptions.ValidationError)
 def handle_error(error):
     response = {
@@ -56,12 +69,37 @@ def create_user():
 
 @api_blueprint.route("/user/<int:user_id>", methods=["GET"])
 def get_user_by_id(user_id):
-    user = db_utils.get_entry_by_id(Users, user_id)
+    try:
+        user = db_utils.get_entry_by_id(Users, user_id)
+    except sqlalchemy.exc.NoResultFound:
+        response = {
+            'error': {
+                'code': 404,
+                'type': 'NOT_FOUND',
+                'message': 'User not found'
+            }
+        }
+
+        return jsonify(response), 404
+
     return jsonify(UserInfo().dump(user))
 
 
 @api_blueprint.route("/user/<int:user_id>", methods=["PUT"])
 def update_user(user_id):
+    try:
+        db_utils.get_entry_by_id(Users, user_id)
+    except sqlalchemy.exc.NoResultFound:
+        response = {
+            'error': {
+                'code': 404,
+                'type': 'NOT_FOUND',
+                'message': 'User not found'
+            }
+        }
+
+        return jsonify(response), 404
+
     user_data = UserUpdate().load(request.json)
     user_updated = db_utils.update_entry(Users, user_id, **user_data)
     return jsonify(UserInfo().dump(user_updated))
@@ -69,6 +107,19 @@ def update_user(user_id):
 
 @api_blueprint.route("/user/<int:user_id>", methods=["DELETE"])
 def delete_user(user_id):
+    try:
+        user = db_utils.get_entry_by_id(Users, user_id)
+    except sqlalchemy.exc.NoResultFound:
+        response = {
+            'error': {
+                'code': 404,
+                'type': 'NOT_FOUND',
+                'message': 'User not found'
+            }
+        }
+
+        return jsonify(response), 404
+
     db_utils.delete_entry(Users, user_id)
     return jsonify({"code": 200, "message": "OK", "type": "OK"})
 
@@ -98,6 +149,18 @@ def create_wallet():
         }
 
         return jsonify(response), 404
+
+    if wallet_data["funds"] < 0:
+        response = {
+            'error': {
+                'code': 400,
+                'type': 'Validation',
+                'message': 'Funds can\'t be negative'
+            }
+        }
+
+        return jsonify(response), 400
+
     wallet = db_utils.create_entry(Wallets, **wallet_data)
     return jsonify(WalletInfo().dump(wallet))
 
@@ -111,12 +174,37 @@ def get_user_wallets():
 
 @api_blueprint.route("/wallet/<int:wallet_id>", methods=["GET"])
 def get_wallet_by_id(wallet_id):
-    wallet = db_utils.get_entry_by_id(Wallets, wallet_id)
+    try:
+        wallet = db_utils.get_entry_by_id(Wallets, wallet_id)
+    except sqlalchemy.exc.NoResultFound:
+        response = {
+            'error': {
+                'code': 404,
+                'type': 'NOT_FOUND',
+                'message': 'Wallet not found'
+            }
+        }
+
+        return jsonify(response), 404
+
     return jsonify(WalletInfo().dump(wallet))
 
 
 @api_blueprint.route("/wallet/<int:wallet_id>", methods=["PUT"])
 def update_wallet(wallet_id):
+    try:
+        db_utils.get_entry_by_id(Wallets, wallet_id)
+    except sqlalchemy.exc.NoResultFound:
+        response = {
+            'error': {
+                'code': 404,
+                'type': 'NOT_FOUND',
+                'message': 'Wallet not found'
+            }
+        }
+
+        return jsonify(response), 404
+
     wallet_data = WalletUpdate().load(request.json)
     wallet_updated = db_utils.update_entry(Wallets, wallet_id, **wallet_data)
     return jsonify(WalletInfo().dump(wallet_updated))
@@ -124,6 +212,19 @@ def update_wallet(wallet_id):
 
 @api_blueprint.route("/wallet/<int:wallet_id>", methods=["DELETE"])
 def delete_wallet(wallet_id):
+    try:
+        db_utils.get_entry_by_id(Wallets, wallet_id)
+    except sqlalchemy.exc.NoResultFound:
+        response = {
+            'error': {
+                'code': 404,
+                'type': 'NOT_FOUND',
+                'message': 'Wallet not found'
+            }
+        }
+
+        return jsonify(response), 404
+
     db_utils.delete_entry(Wallets, wallet_id)
     return jsonify({"code": 200, "message": "OK", "type": "OK"})
 

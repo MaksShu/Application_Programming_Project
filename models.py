@@ -15,7 +15,7 @@ class Users(BaseModel):
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
     email = Column(String, nullable=False)
-    password = Column(String, nullable=False)
+    password = Column(LargeBinary, nullable=False)
 
 
 class Wallets(BaseModel):
