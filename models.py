@@ -1,7 +1,8 @@
 from sqlalchemy import *
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
-engine = create_engine("postgresql://postgres:30062003@localhost:5432/pptransfer")
+# engine = create_engine("postgresql://postgres:30062003@localhost:5432/pptransfer")
+engine = create_engine("postgresql://postgres:24062004@localhost:5432/pptransfer")
 Session = sessionmaker(bind=engine)
 
 BaseModel = declarative_base()
@@ -10,19 +11,19 @@ BaseModel = declarative_base()
 class Users(BaseModel):
     __tablename__ = "users"
 
-    user_id = Column(Integer, Identity(start=1, cycle=False), primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True, nullable=False)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
     email = Column(String, nullable=False)
-    password = Column(Integer, nullable=False)
+    password = Column(String, nullable=False)
 
 
 class Wallets(BaseModel):
     __tablename__ = "wallets"
 
-    wallet_id = Column(Integer, Identity(start=1, cycle=False), primary_key=True, nullable=False)
+    id = Column(Integer, Identity(start=1, cycle=False), primary_key=True, nullable=False)
     funds = Column(Integer)
-    user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
 
     owner = relationship(Users, foreign_keys=[user_id], backref="wallets", lazy="joined")
 
@@ -30,9 +31,9 @@ class Wallets(BaseModel):
 class Transfers(BaseModel):
     __tablename__ = "transfers"
 
-    transfer_id = Column(Integer, Identity(start=1, cycle=False), primary_key=True, nullable=False)
-    from_wallet_id = Column(Integer, ForeignKey('wallets.wallet_id'), nullable=False)
-    to_wallet_id = Column(Integer, ForeignKey('wallets.wallet_id'), nullable=False)
+    id = Column(Integer, Identity(start=1, cycle=False), primary_key=True, nullable=False)
+    from_wallet_id = Column(Integer, ForeignKey('wallets.id'), nullable=False)
+    to_wallet_id = Column(Integer, ForeignKey('wallets.id'), nullable=False)
     amount = Column(BigInteger)
     datetime = Column(DateTime, server_default=func.now())
 
