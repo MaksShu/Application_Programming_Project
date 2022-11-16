@@ -26,9 +26,13 @@ class UserUpdate(Schema):
     first_name = fields.String()
     last_name = fields.String()
 
+class LoginUser(Schema):
+    email = fields.Email(required=True)
+    password = fields.String(required=True)
+
+
 
 class WalletCreate(Schema):
-    user_id = fields.Integer()
     funds = fields.Integer()
 
 
