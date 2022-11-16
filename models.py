@@ -2,7 +2,7 @@ from sqlalchemy import *
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
 # engine = create_engine("postgresql://postgres:30062003@localhost:5432/pptransfer")
-engine = create_engine("postgresql://postgres:24062004@localhost:5432/pptransfer")
+engine = create_engine("postgresql://postgres:postgres22@localhost:5432/userWallet")
 Session = sessionmaker(bind=engine)
 
 BaseModel = declarative_base()
@@ -14,7 +14,7 @@ class Users(BaseModel):
     id = Column(Integer, primary_key=True, nullable=False)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
-    email = Column(String, nullable=False)
+    email = Column(String, nullable=False, unique=True)
     password = Column(LargeBinary, nullable=False)
 
 
@@ -39,3 +39,10 @@ class Transfers(BaseModel):
 
     from_wallet = relationship(Wallets, foreign_keys=[from_wallet_id], backref="transfers_from", lazy="joined")
     to_wallet = relationship(Wallets, foreign_keys=[to_wallet_id], backref="transfers_to", lazy="joined")
+
+
+class TokenBlocklist(BaseModel):
+    __tablename__ = "tokenBlockList"
+    id = Column(Integer, primary_key=True)
+    jti = Column(String(36), nullable=False, index=True)
+    created_at = Column(DateTime, nullable=False)
