@@ -1,8 +1,8 @@
 from sqlalchemy import *
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
-# engine = create_engine("postgresql://postgres:30062003@localhost:5432/pptransfer")
-engine = create_engine("postgresql://postgres:postgres22@localhost:5432/userWallet")
+engine = create_engine("postgresql://postgres:30062003@localhost:5432/pptransfer",pool_size=20, max_overflow=0)
+#engine = create_engine("postgresql://postgres:postgres22@localhost:5432/userWallet")
 Session = sessionmaker(bind=engine)
 
 BaseModel = declarative_base()
