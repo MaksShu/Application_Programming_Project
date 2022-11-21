@@ -7,11 +7,12 @@ import sys
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
-sys.path.append('../LB-5/Application_Programming_Project')
+
 import db_utils
 from schemas import *
 from models import *
 from config import jwt
+
 api_blueprint = Blueprint('api', __name__)
 StudentID = 1
 session = Session()
@@ -25,6 +26,7 @@ def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
     token = session.query(TokenBlocklist.id).filter_by(jti=jti).scalar()
 
     return token is not None
+
 
 @errors.app_errorhandler(sqlalchemy.exc.NoResultFound)
 def handle_error(error):
@@ -65,7 +67,7 @@ def handle_error(error):
     return jsonify(response), 400
 
 
-@api_blueprint.route('/hello-world')
+@api_blueprint.route('/hello-world', methods=["GET"])
 def hello_world_ex():
     return 'Hello World!'
 
@@ -74,14 +76,16 @@ def hello_world_ex():
 def hello_world():
     return f'Hello World {StudentID}', 200
 
-#checked
+
+# checked
 @api_blueprint.route("/user", methods=["POST"])
 def create_user():
     user_data = UserCreate().load(request.json)
     user = db_utils.create_entry(Users, **user_data)
     return jsonify(UserInfo().dump(user))
 
-#checked
+
+# checked
 @api_blueprint.route("/user/<int:user_id>", methods=["GET"])
 @jwt_required()
 def get_user_by_id(user_id):
@@ -101,7 +105,7 @@ def get_user_by_id(user_id):
     return jsonify(UserInfo().dump(user))
 
 
-#checked
+# checked
 @api_blueprint.route("/user/<int:user_id>", methods=["PUT"])
 @jwt_required()
 def update_user(user_id):
@@ -118,13 +122,14 @@ def update_user(user_id):
 
         return jsonify(response), 404
     if user_id != get_jwt_identity():
-        return jsonify({'error': "Access denied"}), 403   
+        return jsonify({'error': "Access denied"}), 403
 
     user_data = UserUpdate().load(request.json)
     user_updated = db_utils.update_entry(Users, user_id, **user_data)
     return jsonify(UserInfo().dump(user_updated))
 
-#checked
+
+# checked
 @api_blueprint.route("/user", methods=["DELETE"])
 @jwt_required()
 def delete_user():
@@ -141,12 +146,15 @@ def delete_user():
 
         return jsonify(response), 404
 
+    wallets = session.query(Wallets).filter_by(user_id=get_jwt_identity()).all()
+    for wallet in wallets:
+        db_utils.delete_entry(Wallets, wallet.id)
     db_utils.delete_entry(Users, get_jwt_identity())
     logout_user()
     return jsonify({"code": 200, "message": "OK", "type": "OK"})
 
 
-#checked
+# checked
 @api_blueprint.route("/user/login", methods=["GET"])
 def login_user():
     userLog = LoginUser().load(request.get_json())
@@ -162,12 +170,12 @@ def login_user():
         return jsonify(response), 404
 
     if check_password_hash(sys_user.password, userLog['password']):
-            return jsonify(access_token=create_access_token(identity=sys_user.id)), 200
+        return jsonify(access_token=create_access_token(identity=sys_user.id)), 200
     else:
         return jsonify({"Error": "Wrong password"}), 401
-    
 
-#checked
+
+# checked
 @api_blueprint.route("/user/logout", methods=["DELETE"])
 @jwt_required()
 def logout_user():
@@ -177,7 +185,8 @@ def logout_user():
     session.commit()
     return jsonify(msg="JWT revoked")
 
-#checked
+
+# checked
 @api_blueprint.route("/wallet", methods=["POST"])
 @jwt_required()
 def create_wallet():
@@ -213,7 +222,8 @@ def create_wallet():
     wallet = db_utils.create_entry(Wallets, **wallet_data)
     return jsonify(WalletInfo().dump(wallet))
 
-#checked
+
+# checked
 @api_blueprint.route("/wallet", methods=["GET"])
 @jwt_required()
 def get_user_wallets():
@@ -221,7 +231,8 @@ def get_user_wallets():
     wallets = db_utils.get_wallets_by_user_id(user_id)
     return jsonify(WalletInfo().dump(wallets, many=True))
 
-#checked
+
+# checked
 @api_blueprint.route("/wallet/<int:wallet_id>", methods=["GET"])
 @jwt_required()
 def get_wallet_by_id(wallet_id):
@@ -243,7 +254,8 @@ def get_wallet_by_id(wallet_id):
 
     return jsonify(WalletInfo().dump(wallet))
 
-#checked
+
+# checked
 @api_blueprint.route("/wallet/<int:wallet_id>", methods=["PUT"])
 @jwt_required()
 def update_wallet(wallet_id):
@@ -267,7 +279,8 @@ def update_wallet(wallet_id):
     wallet_updated = db_utils.update_entry(Wallets, wallet_id, **wallet_data)
     return jsonify(WalletInfo().dump(wallet_updated))
 
-#checked
+
+# checked
 @api_blueprint.route("/wallet/<int:wallet_id>", methods=["DELETE"])
 @jwt_required()
 def delete_wallet(wallet_id):
@@ -287,6 +300,12 @@ def delete_wallet(wallet_id):
     if wallet.user_id != get_jwt_identity():
         return jsonify({'error': "Access denied"}), 403
 
+    transfers1 = session.query(Transfers).filter_by(from_wallet_id=wallet.id).all()
+    for transfer1 in transfers1:
+        db_utils.delete_entry(Transfers, transfer1.id)
+    transfers2 = session.query(Transfers).filter_by(to_wallet_id=wallet.id).all()
+    for transfer2 in transfers2:
+        db_utils.delete_entry(Transfers, transfer2.id)
     db_utils.delete_entry(Wallets, wallet_id)
     return jsonify({"code": 200, "message": "OK", "type": "OK"})
 
@@ -350,7 +369,6 @@ def wallet_make_transfer():
 @api_blueprint.route("/wallet/<int:wallet_id>/transfers", methods=["GET"])
 @jwt_required()
 def get_transfers(wallet_id):
-
     try:
         user_wallet = db_utils.get_entry_by_id(Wallets, wallet_id)
     except sqlalchemy.exc.NoResultFound:
