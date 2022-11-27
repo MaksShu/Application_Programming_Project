@@ -1,9 +1,10 @@
 from sqlalchemy import *
-from sqlalchemy.orm import declarative_base, sessionmaker, relationship
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship, scoped_session
 
-engine = create_engine("postgresql://postgres:30062003@localhost:5432/pptransfer",pool_size=20, max_overflow=0)
-#engine = create_engine("postgresql://postgres:postgres22@localhost:5432/userWallet")
-Session = sessionmaker(bind=engine)
+engine = create_engine("postgresql://postgres:24062004@localhost:5432/pptransfer")
+
+SessionFactory = sessionmaker(bind=engine)
+Session = scoped_session(SessionFactory)
 
 BaseModel = declarative_base()
 

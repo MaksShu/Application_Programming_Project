@@ -3,9 +3,7 @@ from flask import Blueprint, request, jsonify
 import marshmallow
 from flask_bcrypt import check_password_hash
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, get_jwt
-import sys
 from datetime import datetime
-from datetime import timedelta
 from datetime import timezone
 
 import db_utils
@@ -148,7 +146,7 @@ def delete_user():
 
     wallets = session.query(Wallets).filter_by(user_id=get_jwt_identity()).all()
     for wallet in wallets:
-        db_utils.delete_entry(Wallets, wallet.id)
+        delete_wallet(wallet.id)
     db_utils.delete_entry(Users, get_jwt_identity())
     logout_user()
     return jsonify({"code": 200, "message": "OK", "type": "OK"})
@@ -176,7 +174,7 @@ def login_user():
 
 
 # checked
-@api_blueprint.route("/user/logout", methods=["DELETE"])
+@api_blueprint.route("/user/logout", methods=["POST"])
 @jwt_required()
 def logout_user():
     jti = get_jwt()["jti"]

@@ -1,5 +1,5 @@
 from config import *
 from wsgiref.simple_server import make_server
 
-
-app.run(debug=True)
+with make_server('', 5000, app) as server:
+    server.serve_forever()

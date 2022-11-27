@@ -19,17 +19,17 @@ class UserInfo(Schema):
 
 
 class UserUpdate(Schema):
-    email = fields.Email()
+    email = fields.Email(validate=validate.Email())
     password = fields.Function(
         deserialize=lambda obj: generate_password_hash(obj), load_only=True
     )
     first_name = fields.String()
     last_name = fields.String()
 
+
 class LoginUser(Schema):
     email = fields.Email(required=True)
     password = fields.String(required=True)
-
 
 
 class WalletCreate(Schema):

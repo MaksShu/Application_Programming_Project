@@ -35,6 +35,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserCreate'
+    delete:
+      tags:
+        - user
+      summary: Delete logged in user
+      description: This can only be done by the logged in user.
+      operationId: deleteUser
+      responses:
+        '200': 
+          description: Successful operation
+        '401':
+          description: Unauthorized
+      security:
+        - bearerAuth: []
   /user/login:
     get:
       tags:
@@ -70,7 +83,7 @@ paths:
         '405':
           description: Validation exception
   /user/logout:
-    get:
+    post:
       tags:
         - user
       summary: Logs out current logged in user session
@@ -135,26 +148,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserInfo'
-        '400':
-          description: Invalid username supplied
-        '404':
-          description: User not found
-      security:
-        - bearerAuth: []
-    delete:
-      tags:
-        - user
-      summary: Delete user
-      description: This can only be done by the logged in user.
-      operationId: deleteUser
-      parameters:
-        - name: user_id
-          in: path
-          description: The name that needs to be deleted
-          required: true
-          schema:
-            type: integer
-      responses:
         '400':
           description: Invalid username supplied
         '404':
@@ -294,6 +287,8 @@ paths:
             type: integer
             format: int64
       responses:
+        '200': 
+          description: Successful operation
         '400':
           description: Invalid Wallet value
       security:
